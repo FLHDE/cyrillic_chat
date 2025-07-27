@@ -23,14 +23,15 @@ void Nop(LPVOID vOffset, UINT len)
 }
 
 // Adds a jmp or call instruction at a specified address which detours the instruction pointer to arbitrary code
-void Hook(DWORD location, DWORD hookFunc, UINT instrLen, bool jmp = false)
+void Hook(DWORD location, DWORD hookFunc, UINT instrLen, BOOLEAN jmp)
 {
+    BYTE callOpcode = 0xE8, jmpOpcode = 0xE9;
+    DWORD relOffset = hookFunc - location - 5;
+
     // Set the opcode for the call or jmp instruction
-    static BYTE callOpcode = 0xE8, jmpOpcode = 0xE9;
-    Patch((PVOID) location, &(jmp ? jmpOpcode : callOpcode), sizeof(BYTE));
+    Patch((PVOID) location, jmp ? &jmpOpcode : &callOpcode, sizeof(BYTE));
 
     // Set and calculate the relative offset for the hook function
-    DWORD relOffset = hookFunc - location - 5;
     Patch((PVOID) (location + 1), &relOffset, sizeof(DWORD));
 
     // Nop out excess bytes
@@ -38,24 +39,25 @@ void Hook(DWORD location, DWORD hookFunc, UINT instrLen, bool jmp = false)
         Nop((PVOID) (location + 5), instrLen - 5);
 }
 
-typedef bool ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
+typedef BOOLEAN ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
 
 // edx = type
 // ecx = enteredKey
 // eax = unk
-bool ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
+BOOLEAN ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
 {
-	// Check if a key is typed and if the entered key is greater than the ASCII range
-	// If so, convert the key to Cyrillic
-	if (type == 0x102 && (enteredKey & 0x80) != NULL)
-		enteredKey += 0x350;
-	
-	return ((ProcessKey*) PROCESS_KEY_ADDR)(type, enteredKey, unk);
+    // Check if a key is typed and if the entered key is greater than the ASCII range
+    // If so, convert the key to Cyrillic
+    if (type == 0x102 && (enteredKey & 0x80))
+        enteredKey += 0x350;
+
+    // Call the original function
+    return ((ProcessKey*) PROCESS_KEY_ADDR)(type, enteredKey, unk);
 }
 
 void Init()
 {
-    Hook(PROCESS_KEY_CALL_ADDR, (DWORD) ProcessKey_Hook, 5);
+    Hook(PROCESS_KEY_CALL_ADDR, (DWORD) ProcessKey_Hook, 5, FALSE);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
@@ -64,7 +66,10 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     UNREFERENCED_PARAMETER(lpReserved);
 
     if (fdwReason == DLL_PROCESS_ATTACH)
+    {
+        DisableThreadLibraryCalls(hinstDLL);
         Init();
+    }
 
     return TRUE;
 }
