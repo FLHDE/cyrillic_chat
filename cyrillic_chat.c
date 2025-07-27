@@ -39,15 +39,30 @@ void Hook(DWORD location, DWORD hookFunc, UINT instrLen, BOOLEAN jmp)
 
 typedef BOOLEAN ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
 
-// edx = type
-// ecx = enteredKey
-// eax = unk
+#define YO_SRC_UNICODE 0xA8
+#define YO_SRC_LOWER_BIT_NR 4
+#define YO_DEST_UNICODE 0x401
+#define YO_DEST_LOWER_BITS ((1 << YO_SRC_LOWER_BIT_NR) | (1 << (YO_SRC_LOWER_BIT_NR + 2)))
+
+// Check if a key is typed and if the entered key is greater than the ASCII range
+// If so, convert the key to Cyrillic
 BOOLEAN ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
 {
-    // Check if a key is typed and if the entered key is greater than the ASCII range
-    // If so, convert the key to Cyrillic
-    if (type == 0x102 && (enteredKey & 0x80))
-        enteredKey += 0x350;
+    BOOL isLower;
+
+    // Key typed
+    if (type == 0x102)
+    {
+        // ё and Ё
+        if ((enteredKey & ~(1 << YO_SRC_LOWER_BIT_NR)) == YO_SRC_UNICODE)
+        {
+            isLower = (enteredKey >> YO_SRC_LOWER_BIT_NR) & 1;
+            enteredKey = YO_DEST_UNICODE + isLower * YO_DEST_LOWER_BITS;
+        }
+        // General Cyrillic key conversion
+        else if (enteredKey & 0x80)
+            enteredKey += 0x350;
+    }
 
     // Call the original function
     return ((ProcessKey*) PROCESS_KEY_ADDR)(type, enteredKey, unk);
