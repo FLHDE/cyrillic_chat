@@ -1,3 +1,3 @@
-# rus_chat
+# cyrillic_chat
 
-This is a reimplementation of the rus_chat plugin made by thiscall (OutCast) and DF which allows Cyrillic characters to be typed in the chat. The original implementation is often picked up by antiviruses as a false positive, making it not ideal for including it in mods.
+Reimplementation of the rus_chat plugin made by thiscall (OutCast) and DF which allows Cyrillic characters to be typed in the chat. cyrillic_chat expands on the original plugin by adding support for Ukrainian characters and some Russian characters which originally didn't work.

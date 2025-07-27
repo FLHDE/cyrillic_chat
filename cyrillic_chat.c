@@ -7,8 +7,7 @@
 // Patches the memory
 void Patch(LPVOID vOffset, LPVOID mem, UINT len)
 {
-    static DWORD _;
-
+    DWORD _;
     VirtualProtect(vOffset, len, PAGE_EXECUTE_READWRITE, &_);
     memcpy(vOffset, mem, len);
 }
@@ -16,8 +15,7 @@ void Patch(LPVOID vOffset, LPVOID mem, UINT len)
 // Replaces instructions with nop (0x90)
 void Nop(LPVOID vOffset, UINT len)
 {
-    static DWORD _;
-
+    DWORD _;
     VirtualProtect(vOffset, len, PAGE_EXECUTE_READWRITE, &_);
     memset(vOffset, 0x90, len);
 }

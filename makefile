@@ -1,6 +1,6 @@
 # VC6 makefile
 
-PLUGIN_NAME = rus_chat
+PLUGIN_NAME = cyrillic_chat
 
 C_FLAGS = /c /O2 /nologo /W3 /WX /LD /MD
 LD_FLAGS = /DLL /FILEALIGN:512 /NOLOGO /RELEASE

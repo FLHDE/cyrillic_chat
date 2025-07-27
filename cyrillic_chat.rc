@@ -11,11 +11,11 @@ FILETYPE        VFT_DLL
         BLOCK "040904B0"
         {
             VALUE "CompanyName",      "BC46"
-            VALUE "FileDescription",  "Rus Chat"
+            VALUE "FileDescription",  "Cyrillic Chat"
             VALUE "FileVersion",      "0.1"
-            VALUE "InternalName",     "Rus Chat"
+            VALUE "InternalName",     "Cyrillic Chat"
             VALUE "LegalCopyright",   "Copyright 2024 BC46"
-            VALUE "OriginalFilename", "rus_chat.dll"
+            VALUE "OriginalFilename", "cyrillic_chat.dll"
             VALUE "ProductName",      "Freelancer"
             VALUE "ProductVersion",   "0, 0, 1, 0"
         }
