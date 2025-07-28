@@ -1,8 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#define PROCESS_KEY_CALL_ADDR 0x5B0BCE
-#define PROCESS_KEY_ADDR 0x577850
+#define CHECK_MESSAGE_CALL_ADDR 0x5B0BCE
+#define CHECK_MESSAGE_ADDR 0x577850
 
 // Patches the memory
 void Patch(LPVOID vOffset, LPVOID mem, UINT len)
@@ -37,7 +37,9 @@ void Hook(DWORD location, DWORD hookFunc, UINT instrLen, BOOLEAN jmp)
         Nop((PVOID) (location + 5), instrLen - 5);
 }
 
-typedef BOOLEAN ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
+typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
+
+#define KEY_ENTERED 0x102
 
 #define YO_SRC_UNICODE 0xA8
 #define YO_SRC_LOWER_BIT_NR 4
@@ -47,40 +49,38 @@ typedef BOOLEAN ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
 #define NUMERO_SRC_UNICODE 0xB9
 #define NUMERO_DEST_UNICODE 0x2116
 
-// Check if a key is typed and if the entered key is greater than the ASCII range
-// If so, convert the key to Cyrillic
-BOOLEAN ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
+// Check if the entered key is Cyrillic and convert it accordingly before processing
+BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 {
     BOOL isLower;
 
-    // Key typed
-    if (type == 0x102)
+    if (message == WM_CHAR)
     {
         // ё and Ё
-        if ((enteredKey & ~(1 << YO_SRC_LOWER_BIT_NR)) == YO_SRC_UNICODE)
+        if ((charCode & ~(1 << YO_SRC_LOWER_BIT_NR)) == YO_SRC_UNICODE)
         {
-            isLower = (enteredKey >> YO_SRC_LOWER_BIT_NR) & 1;
-            enteredKey = YO_DEST_UNICODE + isLower * YO_DEST_LOWER_BITS;
+            isLower = (charCode >> YO_SRC_LOWER_BIT_NR) & 1;
+            charCode = YO_DEST_UNICODE + isLower * YO_DEST_LOWER_BITS;
         }
         // №
-        else if (enteredKey == NUMERO_SRC_UNICODE)
+        else if (charCode == NUMERO_SRC_UNICODE)
         {
-            enteredKey = NUMERO_DEST_UNICODE;
+            charCode = NUMERO_DEST_UNICODE;
         }
         // General Cyrillic key conversion
-        else if (enteredKey & 0x80)
+        else if (charCode & 0x80)
         {
-            enteredKey += 0x350;
+            charCode += 0x350;
         }
     }
 
     // Call the original function
-    return ((ProcessKey*) PROCESS_KEY_ADDR)(type, enteredKey, unk);
+    return ((CheckMessage*) CHECK_MESSAGE_ADDR)(message, charCode, flags);
 }
 
 void Init()
 {
-    Hook(PROCESS_KEY_CALL_ADDR, (DWORD) ProcessKey_Hook, 5, FALSE);
+    Hook(CHECK_MESSAGE_CALL_ADDR, (DWORD) CheckMessage_Hook, 5, FALSE);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
