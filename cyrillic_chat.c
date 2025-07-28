@@ -53,8 +53,11 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #define YI_SRC_UNICODE 0xAF
 #define YI_DEST_UNICODE 0x407
 
-#define YO_YI_SRC_LOWER_BIT_NR 4
-#define YO_YI_DEST_LOWER_BITS ((1 << YO_YI_SRC_LOWER_BIT_NR) | (1 << (YO_YI_SRC_LOWER_BIT_NR + 2)))
+#define YE_SRC_UNICODE 0xAA
+#define YE_DEST_UNICODE 0x404
+
+#define Y_SRC_LOWER_BIT_NR 4
+#define Y_DEST_LOWER_BITS ((1 << Y_SRC_LOWER_BIT_NR) | (1 << (Y_SRC_LOWER_BIT_NR + 2)))
 
 #define NUMERO_SRC_UNICODE 0xB9
 #define NUMERO_DEST_UNICODE 0x2116
@@ -80,13 +83,25 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
     if (message == WM_CHAR)
     {
         scanCode = (flags >> 16) & 0xFF;
-        yoYiMask = charCode & ~(1 << YO_YI_SRC_LOWER_BIT_NR);
+        yoYiMask = charCode & ~(1 << Y_SRC_LOWER_BIT_NR);
 
         // ё and Ё
         if (yoYiMask == YO_SRC_UNICODE)
         {
-            isLower = (charCode >> YO_YI_SRC_LOWER_BIT_NR) & 1;
-            charCode = YO_DEST_UNICODE + isLower * YO_YI_DEST_LOWER_BITS;
+            isLower = (charCode >> Y_SRC_LOWER_BIT_NR) & 1;
+            charCode = YO_DEST_UNICODE + isLower * Y_DEST_LOWER_BITS;
+        }
+        // ї and Ї
+        if (yoYiMask == YI_SRC_UNICODE)
+        {
+            isLower = (charCode >> Y_SRC_LOWER_BIT_NR) & 1;
+            charCode = YI_DEST_UNICODE + isLower * Y_DEST_LOWER_BITS;
+        }
+        // є and Є
+        if (yoYiMask == YE_SRC_UNICODE)
+        {
+            isLower = (charCode >> Y_SRC_LOWER_BIT_NR) & 1;
+            charCode = YE_DEST_UNICODE + isLower * Y_DEST_LOWER_BITS;
         }
         // №
         else if (charCode == NUMERO_SRC_UNICODE)
@@ -102,12 +117,6 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         else if (charCode == GE_SRC_UPPER_UNICODE)
         {
             charCode = GE_DEST_UPPER_UNICODE;
-        }
-        // ї and Ї
-        if (yoYiMask == YI_SRC_UNICODE)
-        {
-            isLower = (charCode >> YO_YI_SRC_LOWER_BIT_NR) & 1;
-            charCode = YI_DEST_UNICODE + isLower * YO_YI_DEST_LOWER_BITS;
         }
         // General Cyrillic key conversion
         else if (charCode & 0x80)
