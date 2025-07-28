@@ -75,10 +75,15 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #define GE_SRC_UPPER_UNICODE 0xA5
 #define GE_DEST_UPPER_UNICODE 0x490
 
+__inline WPARAM GetUpperLowerCharCode(WPARAM charCode, UINT lowerBitNr, WPARAM destUnicode)
+{
+    BOOL isLower = (charCode >> lowerBitNr) & 1;
+    return destUnicode + isLower * IY_DEST_LOWER_BITS;
+}
+
 // Check if the entered key is Cyrillic and convert it accordingly before processing
 BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 {
-    BOOL isLower;
     BYTE scanCode;
     UINT virtualCode;
     WPARAM yoYiMask;
@@ -86,25 +91,27 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
     if (message == WM_CHAR)
     {
         scanCode = (flags >> 16) & 0xFF;
-        yoYiMask = charCode & ~(1 << IY_DEST_LOWER_BITS);
+        yoYiMask = charCode & ~(1 << IY_SRC_LOWER_BIT_NR);
 
         // ё and Ё
         if (yoYiMask == YO_SRC_UNICODE)
         {
-            isLower = (charCode >> IY_SRC_LOWER_BIT_NR) & 1;
-            charCode = YO_DEST_UNICODE + isLower * IY_DEST_LOWER_BITS;
+            charCode = GetUpperLowerCharCode(charCode, IY_SRC_LOWER_BIT_NR, YO_DEST_UNICODE);
         }
         // ї and Ї
         else if (yoYiMask == YI_SRC_UNICODE)
         {
-            isLower = (charCode >> IY_SRC_LOWER_BIT_NR) & 1;
-            charCode = YI_DEST_UNICODE + isLower * IY_DEST_LOWER_BITS;
+            charCode = GetUpperLowerCharCode(charCode, IY_SRC_LOWER_BIT_NR, YI_DEST_UNICODE);
         }
         // є and Є
         else if (yoYiMask == YE_SRC_UNICODE)
         {
-            isLower = (charCode >> IY_SRC_LOWER_BIT_NR) & 1;
-            charCode = YE_DEST_UNICODE + isLower * IY_DEST_LOWER_BITS;
+            charCode = GetUpperLowerCharCode(charCode, IY_SRC_LOWER_BIT_NR, YE_DEST_UNICODE);
+        }
+        // і and І
+        else if ((charCode & ~1) == I_SRC_UNICODE)
+        {
+            charCode = GetUpperLowerCharCode(charCode, 0, I_DEST_UNICODE);
         }
         // №
         else if (charCode == NUMERO_SRC_UNICODE)
@@ -120,12 +127,6 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         else if (charCode == GE_SRC_UPPER_UNICODE)
         {
             charCode = GE_DEST_UPPER_UNICODE;
-        }
-        // і and І
-        else if ((charCode & ~1) == I_SRC_UNICODE)
-        {
-            isLower = charCode & 1;
-            charCode = I_DEST_UNICODE + isLower * IY_DEST_LOWER_BITS;
         }
         // General Cyrillic key conversion
         else if (charCode & 0x80)
