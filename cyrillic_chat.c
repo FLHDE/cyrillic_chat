@@ -48,9 +48,13 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #endif
 
 #define YO_SRC_UNICODE 0xA8
-#define YO_SRC_LOWER_BIT_NR 4
 #define YO_DEST_UNICODE 0x401
-#define YO_DEST_LOWER_BITS ((1 << YO_SRC_LOWER_BIT_NR) | (1 << (YO_SRC_LOWER_BIT_NR + 2)))
+
+#define YI_SRC_UNICODE 0xAF
+#define YI_DEST_UNICODE 0x407
+
+#define YO_YI_SRC_LOWER_BIT_NR 4
+#define YO_YI_DEST_LOWER_BITS ((1 << YO_YI_SRC_LOWER_BIT_NR) | (1 << (YO_YI_SRC_LOWER_BIT_NR + 2)))
 
 #define NUMERO_SRC_UNICODE 0xB9
 #define NUMERO_DEST_UNICODE 0x2116
@@ -71,16 +75,18 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
     BOOL isLower;
     BYTE scanCode;
     UINT virtualCode;
+    WPARAM yoYiMask;
 
     if (message == WM_CHAR)
     {
         scanCode = (flags >> 16) & 0xFF;
+        yoYiMask = charCode & ~(1 << YO_YI_SRC_LOWER_BIT_NR);
 
         // ё and Ё
-        if ((charCode & ~(1 << YO_SRC_LOWER_BIT_NR)) == YO_SRC_UNICODE)
+        if (yoYiMask == YO_SRC_UNICODE)
         {
-            isLower = (charCode >> YO_SRC_LOWER_BIT_NR) & 1;
-            charCode = YO_DEST_UNICODE + isLower * YO_DEST_LOWER_BITS;
+            isLower = (charCode >> YO_YI_SRC_LOWER_BIT_NR) & 1;
+            charCode = YO_DEST_UNICODE + isLower * YO_YI_DEST_LOWER_BITS;
         }
         // №
         else if (charCode == NUMERO_SRC_UNICODE)
@@ -96,6 +102,12 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         else if (charCode == GE_SRC_UPPER_UNICODE)
         {
             charCode = GE_DEST_UPPER_UNICODE;
+        }
+        // ї and Ї
+        if (yoYiMask == YI_SRC_UNICODE)
+        {
+            isLower = (charCode >> YO_YI_SRC_LOWER_BIT_NR) & 1;
+            charCode = YI_DEST_UNICODE + isLower * YO_YI_DEST_LOWER_BITS;
         }
         // General Cyrillic key conversion
         else if (charCode & 0x80)
