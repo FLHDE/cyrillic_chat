@@ -44,6 +44,9 @@ typedef BOOLEAN ProcessKey(DWORD type, DWORD enteredKey, DWORD unk);
 #define YO_DEST_UNICODE 0x401
 #define YO_DEST_LOWER_BITS ((1 << YO_SRC_LOWER_BIT_NR) | (1 << (YO_SRC_LOWER_BIT_NR + 2)))
 
+#define NUMERO_SRC_UNICODE 0xB9
+#define NUMERO_DEST_UNICODE 0x2116
+
 // Check if a key is typed and if the entered key is greater than the ASCII range
 // If so, convert the key to Cyrillic
 BOOLEAN ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
@@ -59,9 +62,16 @@ BOOLEAN ProcessKey_Hook(DWORD type, DWORD enteredKey, DWORD unk)
             isLower = (enteredKey >> YO_SRC_LOWER_BIT_NR) & 1;
             enteredKey = YO_DEST_UNICODE + isLower * YO_DEST_LOWER_BITS;
         }
+        // №
+        else if (enteredKey == NUMERO_SRC_UNICODE)
+        {
+            enteredKey = NUMERO_DEST_UNICODE;
+        }
         // General Cyrillic key conversion
         else if (enteredKey & 0x80)
+        {
             enteredKey += 0x350;
+        }
     }
 
     // Call the original function
