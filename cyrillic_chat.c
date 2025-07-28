@@ -59,6 +59,12 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #define RUBLE_DEST_UNICODE 0x20BD
 #define HRYVNIA_DEST_UNICODE 0x20B4
 
+#define GE_SRC_LOWER_UNICODE 0xB4
+#define GE_DEST_LOWER_UNICODE 0x491
+
+#define GE_SRC_UPPER_UNICODE 0xA5
+#define GE_DEST_UPPER_UNICODE 0x490
+
 // Check if the entered key is Cyrillic and convert it accordingly before processing
 BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 {
@@ -80,6 +86,16 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         else if (charCode == NUMERO_SRC_UNICODE)
         {
             charCode = NUMERO_DEST_UNICODE;
+        }
+        // ґ
+        else if (charCode == GE_SRC_LOWER_UNICODE)
+        {
+            charCode = GE_DEST_LOWER_UNICODE;
+        }
+        // Ґ
+        else if (charCode == GE_SRC_UPPER_UNICODE)
+        {
+            charCode = GE_DEST_UPPER_UNICODE;
         }
         // General Cyrillic key conversion
         else if (charCode & 0x80)
