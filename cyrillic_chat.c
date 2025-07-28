@@ -55,7 +55,8 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #define NUMERO_SRC_UNICODE 0xB9
 #define NUMERO_DEST_UNICODE 0x2116
 
-#define HRYVNIA_SRC_UNICODE 0x3F
+#define RUBLE_HRYVNIA_SRC_UNICODE 0x3F
+#define RUBLE_DEST_UNICODE 0x20BD
 #define HRYVNIA_DEST_UNICODE 0x20B4
 
 // Check if the entered key is Cyrillic and convert it accordingly before processing
@@ -63,6 +64,7 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 {
     BOOL isLower;
     BYTE scanCode;
+    UINT virtualCode;
 
     if (message == WM_CHAR)
     {
@@ -84,10 +86,19 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         {
             charCode += 0x350;
         }
-        // Hryvnia
-        else if (charCode == HRYVNIA_SRC_UNICODE && MapVirtualKey(scanCode, MAPVK_VSC_TO_VK) == VK_OEM_3)
+        // Ruble and Hryvnia
+        else if (charCode == RUBLE_HRYVNIA_SRC_UNICODE)
         {
-            charCode = HRYVNIA_DEST_UNICODE;
+            virtualCode = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
+
+            if (virtualCode == '8') // TODO: check for ALT? (bit 24 of flags)
+            {
+                charCode = RUBLE_DEST_UNICODE;
+            }
+            else if (virtualCode == VK_OEM_3)
+            {
+                charCode = HRYVNIA_DEST_UNICODE;
+            }
         }
     }
 
