@@ -39,7 +39,13 @@ void Hook(DWORD location, DWORD hookFunc, UINT instrLen, BOOLEAN jmp)
 
 typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 
-#define KEY_ENTERED 0x102
+#ifndef MAPVK_VSC_TO_VK
+#define MAPVK_VSC_TO_VK (1)
+#endif
+
+#ifndef VK_OEM_3
+#define VK_OEM_3 0xC0
+#endif
 
 #define YO_SRC_UNICODE 0xA8
 #define YO_SRC_LOWER_BIT_NR 4
@@ -49,13 +55,19 @@ typedef BOOLEAN CheckMessage(UINT message, WPARAM charCode, LPARAM flags);
 #define NUMERO_SRC_UNICODE 0xB9
 #define NUMERO_DEST_UNICODE 0x2116
 
+#define HRYVNIA_SRC_UNICODE 0x3F
+#define HRYVNIA_DEST_UNICODE 0x20B4
+
 // Check if the entered key is Cyrillic and convert it accordingly before processing
 BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 {
     BOOL isLower;
+    BYTE scanCode;
 
     if (message == WM_CHAR)
     {
+        scanCode = (flags >> 16) & 0xFF;
+
         // ё and Ё
         if ((charCode & ~(1 << YO_SRC_LOWER_BIT_NR)) == YO_SRC_UNICODE)
         {
@@ -71,6 +83,11 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         else if (charCode & 0x80)
         {
             charCode += 0x350;
+        }
+        // Hryvnia
+        else if (charCode == HRYVNIA_SRC_UNICODE && MapVirtualKey(scanCode, MAPVK_VSC_TO_VK) == VK_OEM_3)
+        {
+            charCode = HRYVNIA_DEST_UNICODE;
         }
     }
 
