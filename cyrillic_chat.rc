@@ -14,7 +14,7 @@ FILETYPE        VFT_DLL
             VALUE "FileDescription",  "Cyrillic Chat"
             VALUE "FileVersion",      "0.2"
             VALUE "InternalName",     "Cyrillic Chat"
-            VALUE "LegalCopyright",   "Copyright 2024 BC46"
+            VALUE "LegalCopyright",   "Copyright 2025 BC46"
             VALUE "OriginalFilename", "cyrillic_chat.dll"
             VALUE "ProductName",      "Freelancer"
             VALUE "ProductVersion",   "0, 0, 2, 0"
