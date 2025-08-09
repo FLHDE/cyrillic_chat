@@ -90,7 +90,6 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
 
     if (message == WM_CHAR)
     {
-        scanCode = (flags >> 16) & 0xFF;
         yoYiMask = charCode & ~(1 << IY_SRC_LOWER_BIT_NR);
 
         // ё and Ё
@@ -136,6 +135,7 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         // Ruble and Hryvnia
         else if (charCode == RUBLE_HRYVNIA_SRC_UNICODE)
         {
+            scanCode = (flags >> 16) & 0xFF;
             virtualCode = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
 
             if (virtualCode == '8') // TODO: check for ALT? (bit 24 of flags)
