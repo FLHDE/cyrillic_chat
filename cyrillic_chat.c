@@ -135,7 +135,7 @@ BOOLEAN CheckMessage_Hook(UINT message, WPARAM charCode, LPARAM flags)
         // Ruble and Hryvnia
         else if (charCode == RUBLE_HRYVNIA_SRC_UNICODE)
         {
-            scanCode = (flags >> 16) & 0xFF;
+            scanCode = LOBYTE(HIWORD(flags));
             virtualCode = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
 
             if (virtualCode == '8') // TODO: check for ALT? (bit 24 of flags)
