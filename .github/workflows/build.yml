@@ -28,6 +28,7 @@ jobs:
       - name: Build plugin with VC6
         run: |
           call "${{ github.workspace }}\VC6\VC98\Bin\VCVARS32.BAT"
+          cd plugin
           nmake /nologo
 
       - name: Upload release build as artifact
